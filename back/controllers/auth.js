@@ -58,60 +58,96 @@ import { v4 as uuidv4 } from "uuid";
 import { sendActivationLink } from "./mail.js";
 import { generateTokens, saveRefreshToken } from "./token.js";
 
-export const register = async (req, res) => {
-    const { email, password, fullname, username } = req.body;
+const queryDatabase = (query, params) => {
+    return new Promise((resolve, reject) => {
+        db.query(query, params, (err, data) => {
+            if (err) return reject(err);
+            resolve(data);
+        });
+    });
+};
 
+export const register = async (req, res) => {
     try {
+        const { email, password, fullname, username } = req.body;
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const activationLink = uuidv4();
 
-        const emailQuery = "SELECT * FROM users WHERE email = ?";
-        const usernameQuery = "SELECT * FROM users WHERE username = ?";
-
-        const emailResults = await new Promise((resolve, reject) => {
-            db.query(emailQuery, [email], (err, data) => {
-                if (err) return reject(err);
-                resolve(data);
-            });
-        });
-
+        const emailResults = await queryDatabase("SELECT * FROM users WHERE email = ?", [email]);
         if (emailResults.length) {
             return res.status(400).json("Email is already used");
         }
 
-        const usernameResults = await new Promise((resolve, reject) => {
-            db.query(usernameQuery, [username], (err, data) => {
-                if (err) return reject(err);
-                resolve(data);
-            });
-        });
-
+        const usernameResults = await queryDatabase("SELECT * FROM users WHERE username = ?", [username]);
         if (usernameResults.length) {
             return res.status(400).json("Username is already used");
         }
 
         const insertQuery = "INSERT INTO users (email, password, fullname, username, activationLink) VALUES (?, ?, ?, ?, ?)";
         const values = [email, hashedPassword, fullname, username, activationLink];
+        const insertResult = await queryDatabase(insertQuery, values);
 
-        const insertResult = await new Promise((resolve, reject) => {
-            db.query(insertQuery, values, (err, result) => {
-                if (err) return reject(err);
-                resolve(result);
-            });
-        });
-
-        console.log(insertResult)
-
-        const tokens = generateTokens({email, userId: insertResult.insertId });
-        saveRefreshToken(insertResult.insertId, tokens.refreshToken);
+        const tokens = generateTokens({ email, userId: insertResult.insertId });
+        await saveRefreshToken(insertResult.insertId, tokens.refreshToken);
 
         res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
 
-        await sendActivationLink(email, `${process.env.URL}/activate/${activationLink}`);
+        await sendActivationLink(email, `${process.env.API_URL}/auth/activate/${activationLink}`);
 
-        return res.status(201).json({ message: "User registered successfully", userId: insertResult.insertId });
+        return res.status(201).json({ message: "User registered successfully", ...tokens });
     } catch (err) {
         console.error("Error during registration:", err);
         return res.status(500).json("Server error");
     }
 };
+
+export const activate = async (req, res) => {
+
+    try{
+        const activationLink = req.params.link;
+
+        let q = "SELECT * FROM users WHERE activationLink = ?";
+        const candidate = await queryDatabase(q, activationLink)
+        console.log(candidate)
+        if(!candidate.length) throw new Error("Incorrect Link")
+
+        q = "UPDATE users SET isActivated = ? WHERE id = ?";
+
+        const activationResult = await queryDatabase(q, [1, candidate[0].id])
+
+        if(activationResult.affectedRows === 0) throw new Error("Error during activation")
+
+        console.log(activationResult)
+
+
+        
+        return res.redirect(process.env.CLIENT_URL)
+    }
+    catch(err){
+        console.log(err);
+        return res.status(400).json({message: err.message || "Server Error"})
+    }
+
+    
+}
+
+
+export const login = async (req, res) => {
+
+}
+
+export const deleteUser = async (req, res) => {
+    try{
+
+        const {email} = req.body;
+        const q = "DELETE FROM users WHERE email = ?"
+        const deleteResult = await queryDatabase(q, email)
+        console.log(deleteResult)
+
+        return res.status(200).json({message: 'user deleted', email})
+    }
+    catch(err){
+        return res.status(500).json(err.message)
+    }
+}

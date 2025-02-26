@@ -3,6 +3,6 @@ import { getUser } from "../controllers/user.js";
 
 const router = e.Router();
 
-router.get('/', getUser)
+router.get('/getUser', getUser)
 
 export default router
