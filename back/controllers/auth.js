@@ -1,64 +1,11 @@
-// import bcrypt from "bcrypt";
-// import { db } from "../connect.js";
-// import {v4 as uuidv4} from "uuid";
-// import { sendActivationLink } from "./mail.js";
-// import { generateTokens, saveRefreshToken } from "./token.js";
-
-// export const register = async (req, res) => {
-
-//     const { email, password, fullname, username } = req.body 
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     const activationLink = uuidv4();
-    
-
-//     const values = [email, hashedPassword, fullname, username, activationLink]
-
-//     const q = "INSERT INTO users (email, password, fullname, username, activationLink) VALUES (?, ?, ?, ?, ?)";
-//     const q1 = "SELECT * FROM users WHERE email = ?"
-//     const q2 = "SELECT * FROM users WHERE username = ?"
-
-//     db.query(q1, email, (err, data) => {
-//         if(err) return res.status(500).json(err);
-//         if(data.length){
-//             return res.status(400).json("email is already used")
-//         }
-//     })
-
-//     db.query(q2, username, (err, data) => {
-//         if(err) return res.status(500).json(err);
-//         if(data.length){
-//             return res.status(400).json("username is already used")
-//         }
-//     })
-
-    
-    
-//     const createdUser = db.query(q, values);
-
-//     console.log(createdUser.insertId)
-
-//     const tokens = generateTokens(createdUser.email);
-//     saveRefreshToken(createdUser.id, tokens.refreshToken);
-//     res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30*24*60*60*1000, httpOnly: true});
-
-//     sendActivationLink(createdUser.email, activationLink);
-
-    
-    
-    
-
-    
-// }
-
-
 import bcrypt from "bcrypt";
 import { db } from "../connect.js";
 import { v4 as uuidv4 } from "uuid";
 import { sendActivationLink } from "./mail.js";
-import { generateTokens, saveRefreshToken } from "./token.js";
+import { findToken, generateTokens, removeToken, saveRefreshToken, validateRefresh } from "./token.js";
+import { validationResult } from "express-validator";
 
-const queryDatabase = (query, params) => {
+export const queryDatabase = (query, params) => {
     return new Promise((resolve, reject) => {
         db.query(query, params, (err, data) => {
             if (err) return reject(err);
@@ -69,7 +16,13 @@ const queryDatabase = (query, params) => {
 
 export const register = async (req, res) => {
     try {
+        const errors = validationResult(req)
         const { email, password, fullname, username } = req.body;
+
+        if(!errors.isEmpty()){
+            console.log(errors)
+            throw new Error('Ошибка при валидации')
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const activationLink = uuidv4();
@@ -98,7 +51,7 @@ export const register = async (req, res) => {
         return res.status(201).json({ message: "User registered successfully", ...tokens });
     } catch (err) {
         console.error("Error during registration:", err);
-        return res.status(500).json("Server error");
+        return res.status(400).json(err.message);
     }
 };
 
@@ -134,8 +87,69 @@ export const activate = async (req, res) => {
 
 
 export const login = async (req, res) => {
+    try{
+        const {email, password} = req.body
+        const q = "SELECT * FROM users WHERE email = ?"
+        const findUser = await queryDatabase(q, email)
+        if(!findUser.length) throw new Error('Пользователь не найден')
 
+        const isPassEquals = await bcrypt.compare(password, findUser[0].password)
+
+        if(!isPassEquals){
+            throw new Error('Неверный пароль')
+        }
+
+        const tokens = generateTokens({ email, userId: findUser[0].id });
+        await saveRefreshToken(findUser[0].id, tokens.refreshToken);
+
+        res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
+        return res.json({...findUser, ...tokens})
+    }
+    catch(err){
+        res.status(400).json(err.message)
+    }
 }
+
+
+export const logout = async (req, res) => {
+    try{
+        const { refreshToken } = req.cookies;
+        const token = await removeToken(refreshToken)
+        res.clearCookie('refreshToken')
+        return res.json({refreshToken})
+    }
+    catch(err){
+        res.json(err.message)
+    }
+}
+
+export const refresh = async (req, res) => {
+    try {
+        const {refreshToken} = req.cookies;
+        if(!refreshToken){
+            throw new Error('Unauthorized')
+        }
+        const userData = await validateRefresh(refreshToken)
+        console.log('userData = ', userData)
+        const tokenFromDb = await findToken(refreshToken)
+        if(!userData || !tokenFromDb) throw new Error('Unauthorised')
+
+        const findUser = await queryDatabase("SELECT * FROM users WHERE id = ?", userData.userId);
+
+        
+
+        const tokens = generateTokens({ email: userData.email, userId: findUser[0].id });
+        await saveRefreshToken(findUser[0].id, tokens.refreshToken);
+
+        res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
+
+        return res.status(201).json({refresh: tokens.refreshToken, ...findUser[0]})
+    } catch (error) {
+        
+        return res.json(error.message)
+    }
+}
+
 
 export const deleteUser = async (req, res) => {
     try{
