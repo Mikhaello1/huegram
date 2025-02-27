@@ -9,10 +9,10 @@ router.post('/registration',
     body('email').isEmail(),
     body('password').isLength({min: 6, max: 12}),
     register);
-router.get('/login', login);
+router.post('/login', login);
 router.post('/logout', logout);
-router.put('/activate/:link', activate);
-router.get('/refresh', refresh);
+router.get('/activate/:link', activate);
+router.post('/refresh', refresh);
 
 router.delete('/delete', deleteUser)
 

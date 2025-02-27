@@ -2,6 +2,7 @@ import { Navigation } from "../Navigation/Navigation";
 import { Logo } from "../Logo/Logo";
 import { Link } from "react-router-dom";
 import { Dispatch, SetStateAction } from "react";
+import { LogoutButton } from "../LogoutButton/LogoutButton";
 
 interface SidebarProps{
   handleSearchModal: () => void;
@@ -23,9 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({handleSearchModal, isSearchModa
 
         <Navigation isSearchModal={isSearchModal} setIsSearchModal={setIsSearchModal} handleSearchModal={handleSearchModal}/>
         
-        <div>
-
-        </div>
+        <LogoutButton/>
     </div>
   )
 }

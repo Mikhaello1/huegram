@@ -8,7 +8,7 @@ interface AccountsHistoryListProps{
 
 export const AccountsHistoryList: React.FC<AccountsHistoryListProps> = memo(({searchHistory}) => {
 
-  console.log(`РЕНДЕР HISTORYLIST`)
+  
   return (
     <div className="overflow-auto border">
 

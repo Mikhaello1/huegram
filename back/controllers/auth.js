@@ -48,7 +48,7 @@ export const register = async (req, res) => {
 
         await sendActivationLink(email, `${process.env.API_URL}/auth/activate/${activationLink}`);
 
-        return res.status(201).json({ message: "User registered successfully", ...tokens });
+        return res.status(201).json(tokens);
     } catch (err) {
         console.error("Error during registration:", err);
         return res.status(400).json(err.message);
@@ -116,7 +116,7 @@ export const logout = async (req, res) => {
         const { refreshToken } = req.cookies;
         const token = await removeToken(refreshToken)
         res.clearCookie('refreshToken')
-        return res.json({refreshToken})
+        
     }
     catch(err){
         res.json(err.message)

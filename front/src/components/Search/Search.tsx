@@ -5,15 +5,15 @@ import { useGetSearchHistoryQuery, useGetSearchUsersByUsernameQuery } from "../.
 import { SearchHistoryItem } from "../../models/SearchHistoryItem";
 
 export const Search = () => {
-    console.log(`РЕНДЕР SEARCH`)
+    
     const [accountsSearchHistory, setAccountsSearchHistory] = useState<SearchHistoryItem[] | undefined>([]);
     const [inputValue, setInputValue] = useState<string>("");
 
     const { data: history, isLoading: isHistoryLoading } = useGetSearchHistoryQuery(1);
-    console.log("HISTORY " + JSON.stringify(history))
+    
     
     const { data : foundAccounts } = useGetSearchUsersByUsernameQuery({searchQuery: inputValue, searcherId: 1}, { skip: !inputValue });
-    console.log("FOUNDACCS" + JSON.stringify(foundAccounts))
+    
 
     useEffect(() => {
         const newHistory = !inputValue ? history : foundAccounts;
