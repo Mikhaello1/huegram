@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import { Profile } from "./pages/Profile/Profile";
 import { Home } from "./pages/Home/Home";
@@ -13,6 +13,11 @@ import { Auth } from "./pages/Auth/Auth";
 
 function App() {
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const accessToken = localStorage.getItem('access')
+    console.log(accessToken)
+    if(!accessToken) navigate('/auth/login')
 
     const isAuthRoute = location.pathname.startsWith("/auth");
 

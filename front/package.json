@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   
-  "proxy": "localhost:1111",
+  
   
   "scripts": {
     "dev": "vite",
