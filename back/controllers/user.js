@@ -1,5 +1,6 @@
 import { db } from "../connect.js";
-import { queryDatabase } from "./auth.js";
+import { queryDatabase } from "../helpers/queryDatabase.js";
+
 
 
 export const getUser = async (req, res) => {

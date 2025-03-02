@@ -1,7 +1,7 @@
 import e from "express";
 import { activate, deleteUser, login, logout, refresh, register } from "../controllers/auth.js";
 import {body} from "express-validator";
-import { authMiddleware } from "../middlewares/auth-middleware.js";
+
 
 const router = e.Router();
 

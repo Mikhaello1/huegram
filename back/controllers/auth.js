@@ -1,18 +1,12 @@
 import bcrypt from "bcrypt";
-import { db } from "../connect.js";
+
 import { v4 as uuidv4 } from "uuid";
 import { sendActivationLink } from "./mail.js";
 import { findToken, generateTokens, removeToken, saveRefreshToken, validateRefresh } from "./token.js";
 import { validationResult } from "express-validator";
+import { queryDatabase } from "../helpers/queryDatabase.js";
 
-export const queryDatabase = (query, params) => {
-    return new Promise((resolve, reject) => {
-        db.query(query, params, (err, data) => {
-            if (err) return reject(err);
-            resolve(data);
-        });
-    });
-};
+
 
 export const register = async (req, res) => {
     try {
@@ -75,7 +69,7 @@ export const activate = async (req, res) => {
 
 
         
-        return res.redirect(process.env.CLIENT_URL)
+        return res.redirect(`${process.env.CLIENT_URL}/auth/login`)
     }
     catch(err){
         console.log(err);
@@ -99,11 +93,15 @@ export const login = async (req, res) => {
             throw new Error('Неверный пароль')
         }
 
-        const tokens = generateTokens({ email, userId: findUser[0].id });
-        await saveRefreshToken(findUser[0].id, tokens.refreshToken);
+        if(!findUser[0].isActivated) throw new Error('Пользователь не активирован')
 
-        res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
-        return res.json({...findUser, ...tokens})
+        const tokens = generateTokens({ email, userId: findUser[0].id });
+        console.log(findUser[0].id, tokens.refreshToken)
+        await saveRefreshToken(findUser[0].id, tokens.refreshToken);
+        console.log("ШЛЮХА ", tokens.refreshToken)
+        res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+
+        return res.json({...findUser[0], ...tokens})
     }
     catch(err){
         res.status(400).json(err.message)
@@ -113,7 +111,14 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try{
+        
         const { refreshToken } = req.cookies;
+        console.log(req.cookies)
+        if (!refreshToken) {
+            return res.status(410).json({ message: 'Refresh token отсутствует' });
+        }
+
+        
         const token = await removeToken(refreshToken)
         res.clearCookie('refreshToken')
         
@@ -126,24 +131,33 @@ export const logout = async (req, res) => {
 export const refresh = async (req, res) => {
     try {
         const {refreshToken} = req.cookies;
+        console.log(req)
+        console.log(refreshToken)
         if(!refreshToken){
             throw new Error('Unauthorized')
         }
+
         const userData = await validateRefresh(refreshToken)
-        console.log('userData = ', userData)
         const tokenFromDb = await findToken(refreshToken)
+
+        console.log(tokenFromDb)
+
         if(!userData || !tokenFromDb) throw new Error('Unauthorised')
+
+        console.log(userData)
 
         const findUser = await queryDatabase("SELECT * FROM users WHERE id = ?", userData.userId);
 
-        
+        console.log(findUser)
 
         const tokens = generateTokens({ email: userData.email, userId: findUser[0].id });
         await saveRefreshToken(findUser[0].id, tokens.refreshToken);
 
+        console.log(tokens.refreshToken)
+
         res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
 
-        return res.status(201).json({refresh: tokens.refreshToken, ...findUser[0]})
+        return res.status(201).json({...tokens, ...findUser[0]})
     } catch (error) {
         
         return res.json(error.message)

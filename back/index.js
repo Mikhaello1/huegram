@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser"
 import usersRoutes from "./routes/users.js"
 import authRoutes from "./routes/auth.js"
+import relationRoutes from "./routes/relationships.js"
 import commentsRoutes from "./routes/comments.js"
 import likesRoutes from "./routes/likes.js"
 import storiesRoutes from "./routes/stories.js"
@@ -16,17 +17,22 @@ const app = e();
 
 dotenv.config();
 
+
 app.use(e.json());
-app.use(cors());
 app.use(cookieParser());
+
+app.use(cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL
+}));
+
+
+
 
 app.use("/api/search", searchAccountsHistoryRouter)
 app.use("/api/users", usersRoutes)
 app.use("/api/auth", authRoutes)
-
-
-
-
+app.use("/api/relationships", relationRoutes)
 
 app.get('/users', (req, res) => {
     const q = "SELECT * FROM huegram.users"; 

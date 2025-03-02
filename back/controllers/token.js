@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { db } from "../connect.js";
-import { queryDatabase } from "./auth.js";
+import { queryDatabase } from "../helpers/queryDatabase.js";
+
 
 export const generateTokens = (payload) => {
     const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, { expiresIn: '30m' });
@@ -16,6 +17,8 @@ export const saveRefreshToken = async (userId, refreshToken) => {
     const checkQuery = "SELECT * FROM tokens WHERE user_id = ?";
     const insertQuery = "INSERT INTO tokens (user_id, refresh_token) VALUES (?, ?)";
     const updateQuery = "UPDATE tokens SET refresh_token = ? WHERE user_id = ?";
+
+    console.log("СЮДА СМОТРИ ------", userId, refreshToken, "----------больше не смотри")
 
     try {
         const existingTokens = await new Promise((resolve, reject) => {
@@ -53,14 +56,21 @@ export const saveRefreshToken = async (userId, refreshToken) => {
 export const removeToken = async (refreshToken) => {
     
     const q = "DELETE FROM tokens WHERE refresh_token = ?"
-    const deleteToken = await new Promise((resolve, reject) => {
-        db.query(q, refreshToken, (err, data) => {
-            if(err) return reject(err)
-            resolve(data)
-        })    
-    })
-
-    return deleteToken  
+    try{
+        const deleteToken = await new Promise((resolve, reject) => {
+            db.query(q, [refreshToken], (err, data) => {
+                if(err) return reject(err)
+                resolve(data)
+            })    
+        })
+    
+        return deleteToken  
+    }
+    catch(err){
+        console.log(err)
+        return null
+    }
+    
 }
 
 export const validateAccess = async (access) => {
@@ -84,14 +94,12 @@ export const validateRefresh = async (refresh) => {
 
 export const findToken = async (token) => {
     try{
-        console.log('token = ', token)
+        
         const q = "SELECT * FROM tokens WHERE refresh_token = ?"
 
         const findToken = await queryDatabase(q, token)
-        console.log('findToken = ', findToken)
-        if(!findToken.length) throw new Error('Unauthorised')
-
         
+        if(!findToken.length) throw new Error('Unauthorised')
 
         return findToken[0].refresh_token
     }

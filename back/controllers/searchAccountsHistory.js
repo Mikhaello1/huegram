@@ -41,6 +41,8 @@ export const addToSearchAccountsHistory = (req, res) => {
     let q = "SELECT * FROM search_accounts_history WHERE searcherId = ? AND searchedId = ?";
     const values = [req.body.searcherId, req.body.searchedId];
 
+    console.log("----------", values)
+
     let isExists;
     db.query(q, values, (err, data) => {
         if(err) return res.json(err)
