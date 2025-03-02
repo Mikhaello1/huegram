@@ -3,6 +3,7 @@ import { IoHome } from "react-icons/io5";
 import { Avatar } from "../Avatar/Avatar";
 import { IoSearch } from "react-icons/io5";
 import { Dispatch, SetStateAction } from "react";
+import { useAppSelector } from "../../hooks/redux";
 
 interface NavigationProps {
   isSearchModal: boolean;
@@ -15,6 +16,9 @@ export const Navigation: React.FC<NavigationProps> = ({
   setIsSearchModal,
   handleSearchModal
 }) => {
+
+  const username = useAppSelector(state => state.user.userData.username)
+
   return (
     <div>
       <NavElement
@@ -35,11 +39,11 @@ export const Navigation: React.FC<NavigationProps> = ({
         img={
           <Avatar
             url="https://sun9-45.userapi.com/impf/c629123/v629123551/efc6/tNqzMrCl5AY.jpg?size=500x278&quality=96&sign=617ee745b3c77d334856035ed90f5b73&type=album"
-            size="30"
+            size={30}
           />
         }
         text="Профиль"
-        path="/profile/daun"
+        path={`/profile/${username}`}
         isSearchModal={isSearchModal}
         setIsSearchModal={setIsSearchModal}
       />

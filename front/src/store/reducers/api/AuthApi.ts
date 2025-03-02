@@ -1,9 +1,10 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ILoginCredentials, IRegisterCredentials, ITokens, IUser } from "../../types/UserDataTypes";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { ILoginCredentials, IRegisterCredentials, ITokens, IUser } from "../../../types/UserDataTypes";
+import customBaseQuery from "./customBaseQuery";
 
 const AuthApi = createApi({
     reducerPath: "authApi",
-    baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:4444/api/auth" }),
+    baseQuery: customBaseQuery(import.meta.env.VITE_API_URL+"/auth"),
     endpoints: (builder) => ({
         login: builder.mutation<ITokens & IUser, ILoginCredentials>({
             query: (loginData) => ({
@@ -25,12 +26,13 @@ const AuthApi = createApi({
                 method: "POST",
             }),
         }),
-        refresh: builder.mutation<void, void>({
+        refresh: builder.mutation<IUser & ITokens, void>({
             query: () => ({
                 url: "/refresh",
                 method: "POST",
             }),
         }),
+        
     }),
 });
 

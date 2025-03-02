@@ -1,7 +1,13 @@
+import { useAppSelector } from "../../hooks/redux"
 
 
 export const Home = () => {
-  return (
-    <div>News Feed</div>
-  )
+
+    const user = useAppSelector(state => state.user.userData)
+
+    return (
+        <div>
+            {JSON.stringify(user)}
+        </div>
+    )
 }

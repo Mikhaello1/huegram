@@ -12,6 +12,8 @@ export type IUser = {
     activationLink?: string
 }
 
+export type IUserData = Omit<IUser, "password" | "isActivated" | "activationLink">
+
 export type ILoginCredentials = Pick<IUser, "email" | "password">
 
 export type IRegisterCredentials = Pick<IUser, "email" | "password" | "username" | "fullname">

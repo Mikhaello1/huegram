@@ -8,7 +8,7 @@ export const Auth: FC = () => {
     const {authType} = useParams()
   return (
     <div className='h-screen w-screen flex items-center justify-center'>
-        {authType=="login" ? <Login/> : <Registration/>}
+        {authType==="login" ? <Login/> : authType==="registration" && <Registration/>}
     </div>
   )
 }

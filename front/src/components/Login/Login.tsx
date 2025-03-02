@@ -1,10 +1,17 @@
 import { FC, useCallback, useRef, useState } from "react";
 import { Logo } from "../Logo/Logo";
-import { Link } from "react-router-dom";
-import { useLoginMutation } from "../../store/reducers/AuthApi";
+import { Link, useNavigate } from "react-router-dom";
+import { useLoginMutation } from "../../store/reducers/api/AuthApi";
 import { ILoginCredentials } from "../../types/UserDataTypes";
 
+import { setIsAuth, setUserData } from "../../store/reducers/slices/UserSlice";
+import { useAppDispatch } from "../../hooks/redux";
+
 export const Login: FC = () => {
+
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
     const passInpRef = useRef<HTMLInputElement>(null);
     const logInpRef = useRef<HTMLInputElement>(null);
 
@@ -26,12 +33,14 @@ export const Login: FC = () => {
                     email: logInpRef.current?.value,
                     password: passInpRef.current?.value
                 }
-                const tokens = await login(loginData).unwrap();
-                
-                localStorage.setItem("access", tokens.accessToken);
-                
-                
+                const response = await login(loginData).unwrap();
 
+                const {id, username, email, fullname, profilePic, about, accessToken} = response;
+                
+                localStorage.setItem("access", accessToken);
+                dispatch(setUserData({id, username, email, fullname, profilePic, about}));
+                dispatch(setIsAuth(true));
+                navigate('/')
             }
         }
         catch(err){

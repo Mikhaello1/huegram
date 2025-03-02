@@ -1,15 +1,18 @@
 import { MdOutlineCancel } from "react-icons/md";
 import { AccountsHistoryList } from "../AccountsHistoryList/AccountsHistoryList";
 import { useCallback, useEffect, useState } from "react";
-import { useGetSearchHistoryQuery, useGetSearchUsersByUsernameQuery } from "../../store/reducers/SearchApi";
+import { useGetSearchHistoryQuery, useGetSearchUsersByUsernameQuery } from "../../store/reducers/api/SearchApi";
 import { SearchHistoryItem } from "../../models/SearchHistoryItem";
+import { useAppSelector } from "../../hooks/redux";
 
 export const Search = () => {
     
     const [accountsSearchHistory, setAccountsSearchHistory] = useState<SearchHistoryItem[] | undefined>([]);
     const [inputValue, setInputValue] = useState<string>("");
 
-    const { data: history, isLoading: isHistoryLoading } = useGetSearchHistoryQuery(1);
+    const myUserId = useAppSelector(state => state.user.userData.id)
+
+    const { data: history, isLoading: isHistoryLoading } = useGetSearchHistoryQuery(myUserId);
     
     
     const { data : foundAccounts } = useGetSearchUsersByUsernameQuery({searchQuery: inputValue, searcherId: 1}, { skip: !inputValue });

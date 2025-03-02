@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Logo } from "../Logo/Logo";
 import { Link } from "react-router-dom";
-import { useRegisterMutation } from "../../store/reducers/AuthApi";
+import { useRegisterMutation } from "../../store/reducers/api/AuthApi";
 import { IRegisterCredentials } from "../../types/UserDataTypes";
 
 

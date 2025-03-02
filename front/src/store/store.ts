@@ -1,12 +1,14 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 
-import searchApi from "./reducers/SearchApi";
-import AuthApi from "./reducers/AuthApi";
+import searchApi from "./reducers/api/SearchApi";
+import AuthApi from "./reducers/api/AuthApi";
+import UserSlice from "./reducers/slices/UserSlice";
 
 
 const rootReducer = combineReducers({
     [searchApi.reducerPath]: searchApi.reducer,
-    [AuthApi.reducerPath]: AuthApi.reducer
+    [AuthApi.reducerPath]: AuthApi.reducer,
+    [UserSlice.reducerPath]: UserSlice.reducer,
 })
 
 export const setupStore = () => {

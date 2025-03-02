@@ -13,18 +13,19 @@ interface SidebarProps{
 export const Sidebar: React.FC<SidebarProps> = ({handleSearchModal, isSearchModal, setIsSearchModal}) => {
 
   return (
-    <div className={`border pt-5 px-5`}>
+    <div className={`border pt-5 px-5 h-screen`}>
         
-        {!isSearchModal && 
-          (<Link to="/">
-            <Logo styles="w-52"/>
-          </Link>)
-        }
-        
+          {!isSearchModal && 
+            (<Link to="/">
+              <Logo styles="w-52"/>
+            </Link>)
+          }
+          
 
-        <Navigation isSearchModal={isSearchModal} setIsSearchModal={setIsSearchModal} handleSearchModal={handleSearchModal}/>
+          <Navigation isSearchModal={isSearchModal} setIsSearchModal={setIsSearchModal} handleSearchModal={handleSearchModal}/>
+          
+          <LogoutButton/>
         
-        <LogoutButton/>
     </div>
   )
 }
