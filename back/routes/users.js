@@ -4,7 +4,7 @@ import { authMiddleware } from "../middlewares/auth-middleware.js";
 
 const router = e.Router();
 
-router.get('/getUser/:id',
+router.get('/getUser',
     authMiddleware,
     getUser)
 

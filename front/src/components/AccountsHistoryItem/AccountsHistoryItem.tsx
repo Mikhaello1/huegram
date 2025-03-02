@@ -13,23 +13,21 @@ interface AccountsHistoryItemProps{
 export const AccountsHistoryItem: React.FC<AccountsHistoryItemProps> = memo(({searchedUser}) => {
 
     const {username, profilePic, fullname, userId, } = searchedUser;
-    console.log(`РЕНДЕР HISTORYITEM id = ${userId}`)
     const [addSearchAccountHistory] = useAddSearchAccountHistoryMutation();
     const [deleteSearchAccountHistory] = useDeleteFromSearchAccountHistoryMutation();
 
     const myUserId = useAppSelector(state => state.user.userData.id)
 
     const deleteItemFromHistory = useCallback((userId: number) => {
-        console.log("FUNCTION RERENDER!!!")
         deleteSearchAccountHistory({
             searcherId: myUserId,
             searchedId: userId
         })
-    }, []);
+    }, [deleteSearchAccountHistory]);
 
-    const handleLinkClick = () => {
+    const handleLinkClick = useCallback(() => {
         addSearchAccountHistory({searcherId: myUserId, searchedId: userId})
-    }
+    }, [addSearchAccountHistory])
 
   return (
     <div className="relative">

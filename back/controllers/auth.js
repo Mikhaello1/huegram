@@ -14,7 +14,6 @@ export const register = async (req, res) => {
         const { email, password, fullname, username } = req.body;
 
         if(!errors.isEmpty()){
-            console.log(errors)
             throw new Error('Ошибка при валидации')
         }
 
@@ -56,7 +55,6 @@ export const activate = async (req, res) => {
 
         let q = "SELECT * FROM users WHERE activationLink = ?";
         const candidate = await queryDatabase(q, activationLink)
-        console.log(candidate)
         if(!candidate.length) throw new Error("Incorrect Link")
 
         q = "UPDATE users SET isActivated = ? WHERE id = ?";
@@ -65,14 +63,9 @@ export const activate = async (req, res) => {
 
         if(activationResult.affectedRows === 0) throw new Error("Error during activation")
 
-        console.log(activationResult)
-
-
-        
         return res.redirect(`${process.env.CLIENT_URL}/auth/login`)
     }
     catch(err){
-        console.log(err);
         return res.status(400).json({message: err.message || "Server Error"})
     }
 
@@ -96,9 +89,7 @@ export const login = async (req, res) => {
         if(!findUser[0].isActivated) throw new Error('Пользователь не активирован')
 
         const tokens = generateTokens({ email, userId: findUser[0].id });
-        console.log(findUser[0].id, tokens.refreshToken)
         await saveRefreshToken(findUser[0].id, tokens.refreshToken);
-        console.log("ШЛЮХА ", tokens.refreshToken)
         res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 
         return res.json({...findUser[0], ...tokens})
@@ -113,12 +104,10 @@ export const logout = async (req, res) => {
     try{
         
         const { refreshToken } = req.cookies;
-        console.log(req.cookies)
         if (!refreshToken) {
             return res.status(410).json({ message: 'Refresh token отсутствует' });
         }
 
-        
         const token = await removeToken(refreshToken)
         res.clearCookie('refreshToken')
         
@@ -131,8 +120,7 @@ export const logout = async (req, res) => {
 export const refresh = async (req, res) => {
     try {
         const {refreshToken} = req.cookies;
-        console.log(req)
-        console.log(refreshToken)
+
         if(!refreshToken){
             throw new Error('Unauthorized')
         }
@@ -140,20 +128,12 @@ export const refresh = async (req, res) => {
         const userData = await validateRefresh(refreshToken)
         const tokenFromDb = await findToken(refreshToken)
 
-        console.log(tokenFromDb)
-
         if(!userData || !tokenFromDb) throw new Error('Unauthorised')
-
-        console.log(userData)
 
         const findUser = await queryDatabase("SELECT * FROM users WHERE id = ?", userData.userId);
 
-        console.log(findUser)
-
         const tokens = generateTokens({ email: userData.email, userId: findUser[0].id });
         await saveRefreshToken(findUser[0].id, tokens.refreshToken);
-
-        console.log(tokens.refreshToken)
 
         res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
 
@@ -171,7 +151,6 @@ export const deleteUser = async (req, res) => {
         const {email} = req.body;
         const q = "DELETE FROM users WHERE email = ?"
         const deleteResult = await queryDatabase(q, email)
-        console.log(deleteResult)
 
         return res.status(200).json({message: 'user deleted', email})
     }

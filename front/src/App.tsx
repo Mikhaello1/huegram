@@ -21,30 +21,12 @@ function App() {
 
     const [isSearchModal, setIsSearchModal] = useState<boolean>(false);
 
-    const [refresh, _] = useRefreshMutation();
-    const dispatch = useAppDispatch();
-
+        
     const handleSearchModal = () => {
         setIsSearchModal(!isSearchModal);
     };
 
-    useEffect(() => {
-        console.log("access = ", localStorage.getItem("access"))
-        if (!localStorage.getItem("access")) return;
-        const checkAuth = async () => {
-            console.log(1)
-            const response = await refresh().unwrap();
-            localStorage.setItem("access", response.accessToken);
-            dispatch(setIsAuth(true));
-            console.log(response)
-            const { id, email, username, about, profilePic, accessToken } = response;
-            console.log({ id, email, username, about, profilePic, accessToken })
-            dispatch(setUserData({ id, email, username, about, profilePic }));
-        };
-
-        checkAuth();
-
-    }, []);
+    
 
     return (
         <div className={styles.App}>

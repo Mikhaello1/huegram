@@ -1,7 +1,7 @@
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { Route, Routes, Outlet, Link } from "react-router-dom";
 import profileContentRoutes from "../../routes/profileContentRoutes";
-import { useAppSelector } from "../../hooks/redux";
+
 
 interface ProfileContentProps {
     username: string | undefined;

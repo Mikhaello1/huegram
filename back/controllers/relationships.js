@@ -3,14 +3,14 @@ import { queryDatabase } from "../helpers/queryDatabase.js";
 
 export const getFollowers = async (req, res) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.query; 
 
         const q = "SELECT followerUserId FROM relationships WHERE followedUserId = ?";
         const subs = await queryDatabase(q, id);
 
-        console.log(subs);
+        console.log("cerf-----------", subs);
 
-        if (!subs.length) return res.json("0 subs");
+        if (!subs.length) return res.json([]);
 
         const followerIds = subs.map(sub => sub.followerUserId);
 
@@ -26,13 +26,13 @@ export const getFollowers = async (req, res) => {
 
 export const getFollowed = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id } = req.query;
 
         const q = "SELECT followedUserId FROM relationships WHERE followerUserId = ?";
         const subs = await queryDatabase(q, id);
 
         if (!subs.length) {
-            return res.json("0 subs");
+            return res.json([]);
         }
 
         const followedIds = subs.map(sub => sub.followedUserId);

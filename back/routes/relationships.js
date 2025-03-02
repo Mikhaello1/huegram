@@ -5,8 +5,8 @@ import { follow, getFollowed, getFollowers, unfollow } from "../controllers/rela
 
 const router = e.Router();
 
-router.get("/getFollowers/:id", authMiddleware, getFollowers)
-router.get("/getFollowed/:id", authMiddleware, getFollowed)
+router.get("/getFollowers", authMiddleware, getFollowers)
+router.get("/getFollowed", authMiddleware, getFollowed)
 router.post("/follow", authMiddleware, follow)
 router.delete("/unfollow", authMiddleware, unfollow)
 

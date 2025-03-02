@@ -2,7 +2,7 @@ import { NavElement } from "../NavElement/NavElement";
 import { IoHome } from "react-icons/io5";
 import { Avatar } from "../Avatar/Avatar";
 import { IoSearch } from "react-icons/io5";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useAppSelector } from "../../hooks/redux";
 
 interface NavigationProps {
@@ -17,7 +17,13 @@ export const Navigation: React.FC<NavigationProps> = ({
   handleSearchModal
 }) => {
 
+  const [myUsername, setMyUsername] = useState<string>('')
+
   const username = useAppSelector(state => state.user.userData.username)
+
+  useEffect(() => {
+    setMyUsername(username)
+  })
 
   return (
     <div>
@@ -43,7 +49,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           />
         }
         text="Профиль"
-        path={`/profile/${username}`}
+        path={`/profile/${myUsername}`}
         isSearchModal={isSearchModal}
         setIsSearchModal={setIsSearchModal}
       />
